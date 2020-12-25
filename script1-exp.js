@@ -1,39 +1,16 @@
 'use strict';
 
+// prettier-ignore
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 class Workout {
   date = new Date();
   id = (Date.now() + '').slice(-10); //to get an unique ID
-  clicks = 0;
 
   constructor(coords, distance, duration) {
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
     this.duration = duration; // in min
-  }
-
-  _setDescription() {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
-      months[this.date.getMonth()]
-    } ${this.date.getDate()}`;
-  }
-
-  click() {
-    this.clicks++;
   }
 }
 
@@ -44,7 +21,6 @@ class Running extends Workout {
     super(coords, distance, duration);
     this.cadence = cadence;
     this.calcPace(); // to immediately calculate the pace
-    this._setDescription();
   }
 
   calcPace() {
@@ -61,7 +37,6 @@ class Cycling extends Workout {
     super(coords, distance, duration);
     this.elevationGain = elevationGain;
     this.calcSpeed();
-    this._setDescription();
   }
 
   calcSpeed() {
@@ -84,27 +59,19 @@ const inputElevation = document.querySelector('.form__input--elevation');
 class App {
   // Global private variables
   #map;
-  #mapZoomLevel = 13;
   #mapEvent;
   #workouts = [];
 
   constructor() {
-    // Get users position
-    this._getPosition();
-
-    // Get data from local storage
-    this._getLocalStorage();
-
-    // Attach event handlers
+    this._getPosition(); // It will execute this function to get the position
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
-    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
   _getPosition() {
     if (navigator.geolocation)
       navigator.geolocation.getCurrentPosition(
-        this._loadMap.bind(this),
+        this._loadMap.bind(this), // It will send the position to loadMap function
         function () {
           alert('Could not get your position');
         }
@@ -112,42 +79,29 @@ class App {
   }
 
   _loadMap(position) {
+    // This function it will LOAD the map on our current position
     const { latitude } = position.coords; //is the same as position.coords.latitude
     const { longitude } = position.coords;
     console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
 
     const coords = [latitude, longitude];
 
-    this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
+    this.#map = L.map('map').setView(coords, 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
 
-    // Handling clicks on map
+    // Handling clicks on map - It will execute the showForm function on click
     this.#map.on('click', this._showForm.bind(this));
-
-    // This is to render the points in the map if we have already from localStorage
-    this.#workouts.forEach(work => {
-      this._renderWorkoutMarker(work);
-    });
   }
 
   _showForm(mapE) {
-    this.#mapEvent = mapE;
+    this.#mapEvent = mapE; // In the newWorkout function we will take the coordenates
     console.log(this.#mapEvent); // We pass this to global variable to be used in another evtListener
     form.classList.remove('hidden');
     inputDistance.focus(); //to start typing in this input
-  }
-
-  _hideForm() {
-    // Empty inputs
-    inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value =
-      '';
-    form.style.display = 'none';
-    form.classList.add('hidden');
-    setTimeout(() => (form.style.display = 'grid'), 1000);
   }
 
   _toggleElevationField() {
@@ -156,7 +110,7 @@ class App {
   }
 
   _newWorkout(e) {
-    // helper functions
+    // helper functions to validate inputs
     const validInputs = (...inputs) =>
       inputs.every(inp => Number.isFinite(inp));
     const allPositive = (...inputs) => inputs.every(inp => inp > 0);
@@ -200,21 +154,18 @@ class App {
 
     // Add new object to workout array
     this.#workouts.push(workout);
+    console.log(workout);
 
     // Render workout on map as marker
-    this._renderWorkoutMarker(workout);
-
+    this.renderWorkoutMarker(workout);
     // Render workout on list
-    this._renderWorkout(workout);
 
     // Hide form + Clear input fields
-    this._hideForm();
-
-    // Set local storage to all workouts
-    this._setLocalStorage();
+    inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value =
+      '';
   }
 
-  _renderWorkoutMarker(workout) {
+  renderWorkoutMarker(workout) {
     L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
@@ -226,102 +177,8 @@ class App {
           className: `${workout.type}-popup`,
         })
       )
-      .setPopupContent(
-        `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`
-      )
+      .setPopupContent('workout')
       .openPopup();
-  }
-
-  _renderWorkout(workout) {
-    let html = `
-        <li class="workout workout--${workout.type}" data-id="${workout.id}">
-          <h2 class="workout__title">${workout.description}</h2>
-          <div class="workout__details">
-            <span class="workout__icon">${
-              workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'
-            }</span>
-            <span class="workout__value">${workout.distance}</span>
-            <span class="workout__unit">km</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__icon">⏱</span>
-            <span class="workout__value">${workout.duration}</span>
-            <span class="workout__unit">min</span>
-          </div>
-    `;
-    if (workout.type === 'running')
-      html += `
-          <div class="workout__details">
-            <span class="workout__icon">⚡️</span>
-            <span class="workout__value">${workout.pace.toFixed(1)}</span>
-            <span class="workout__unit">min/km</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__icon">🦶🏼</span>
-            <span class="workout__value">${workout.cadence}</span>
-            <span class="workout__unit">spm</span>
-          </div>
-        </li>`;
-    if (workout.type === 'cycling')
-      html += `
-          <div class="workout__details">
-            <span class="workout__icon">⚡️</span>
-            <span class="workout__value">${workout.speed.toFixed(1)}</span>
-            <span class="workout__unit">km/h</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__icon">⛰</span>
-            <span class="workout__value">${workout.elevationGain}</span>
-            <span class="workout__unit">m</span>
-          </div>
-        </li>`;
-
-    form.insertAdjacentHTML('afterend', html);
-  }
-
-  _moveToPopup(e) {
-    const workoutEl = e.target.closest('.workout');
-
-    if (!workoutEl) return;
-
-    const workout = this.#workouts.find(
-      work => work.id === workoutEl.dataset.id
-    );
-
-    this.#map.setView(workout.coords, this.#mapZoomLevel, {
-      animate: true,
-      pan: {
-        duration: 1,
-      },
-    });
-
-    // using the public interface
-    // workout.click(); -- This was to show that when we sent something to localStorage, and we get it back
-    // it loses the inheritet functions from __proto__
-  }
-
-  _setLocalStorage() {
-    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
-  }
-
-  _getLocalStorage() {
-    const data = JSON.parse(localStorage.getItem('workouts'));
-
-    if (!data) return;
-
-    this.#workouts = data;
-
-    // This will render each workout from localstorage into the app
-    this.#workouts.forEach(work => {
-      this._renderWorkout(work);
-    });
-  }
-
-  // to be used in the browser console to remove cache
-  reset() {
-    localStorage.removeItem('workouts');
-    location.reload();
-    // we user as 'app.reset()' in the console
   }
 }
 
