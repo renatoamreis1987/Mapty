@@ -80,6 +80,7 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+const deleteAll = document.querySelector('.workout__deleteAll')
 let workoutDelete
 let workoutEl
 
@@ -101,6 +102,7 @@ class App {
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
+    deleteAll.addEventListener('click', this.reset)
   }
 
   _getPosition() {
@@ -131,6 +133,7 @@ class App {
     this.#map.on('click', this._showForm.bind(this));
 
     // This is to render the points in the map if we have already from localStorage
+    if(!this.workouts) return
     this.workouts.forEach(work => {
       this._renderWorkoutMarker(work);
     });
@@ -201,6 +204,7 @@ class App {
     }
 
     // Add new object to workout array
+    if (!this.workouts) this.workouts = []
     this.workouts.push(workout);
 
     // Render workout on map as marker
@@ -355,7 +359,6 @@ class App {
   reset() {
     localStorage.removeItem('workouts');
     location.reload();
-    // we user as 'app.reset()' in the console
   }
 }
 

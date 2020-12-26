@@ -184,7 +184,9 @@ a:visited {
   transition: all 0.2s;
 }
 
-.twitter-link:hover,
+.twitter-link:hover {
+  cursor: pointer;
+},
 .twitter-link:active {
   color: var(--color-light--2);
 }
@@ -217,4 +219,9 @@ a:visited {
 }
 .cycling-popup .leaflet-popup-content-wrapper {
   border-left: 5px solid var(--color-brand--1);
+}
+
+.centered {
+
+  text-align: center;
 }
