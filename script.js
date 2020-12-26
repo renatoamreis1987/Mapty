@@ -268,7 +268,7 @@ class App {
             <span class="workout__unit">spm</span>
           </div>
           <div class="workout__details">
-            <span class="workout__edit">Edit</span>
+            <span class="workout__edit">Edit (soon)</span>
           </div>
           <div class="workout__details">
             <span class="workout__delete">Delete</span>
@@ -287,7 +287,7 @@ class App {
             <span class="workout__unit">m</span>
           </div>
           <div class="workout__details">
-            <span class="workout__edit">Edit</span>
+            <span class="workout__edit">Edit (soon)</span>
           </div>
           <div class="workout__details">
             <span class="workout__delete">Delete</span>
