@@ -80,15 +80,13 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
-let workoutDelete
-let workoutEl
 
 class App {
   // Global private variables
   #map;
   #mapZoomLevel = 13;
   #mapEvent;
-  static workouts = [];
+  #workouts = [];
 
   constructor() {
     // Get users position
@@ -131,7 +129,7 @@ class App {
     this.#map.on('click', this._showForm.bind(this));
 
     // This is to render the points in the map if we have already from localStorage
-    this.workouts.forEach(work => {
+    this.#workouts.forEach(work => {
       this._renderWorkoutMarker(work);
     });
   }
@@ -201,7 +199,7 @@ class App {
     }
 
     // Add new object to workout array
-    this.workouts.push(workout);
+    this.#workouts.push(workout);
 
     // Render workout on map as marker
     this._renderWorkoutMarker(workout);
@@ -263,12 +261,6 @@ class App {
             <span class="workout__value">${workout.cadence}</span>
             <span class="workout__unit">spm</span>
           </div>
-          <div class="workout__details">
-            <span class="workout__edit">Edit</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__delete">Delete</span>
-          </div>
         </li>`;
     if (workout.type === 'cycling')
       html += `
@@ -282,16 +274,9 @@ class App {
             <span class="workout__value">${workout.elevationGain}</span>
             <span class="workout__unit">m</span>
           </div>
-          <div class="workout__details">
-            <span class="workout__edit">Edit</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__delete">Delete</span>
-          </div>
         </li>`;
 
     form.insertAdjacentHTML('afterend', html);
-    this._addEventListenersToW()
   }
 
   _moveToPopup(e) {
@@ -299,7 +284,7 @@ class App {
 
     if (!workoutEl) return;
 
-    const workout = this.workouts.find(
+    const workout = this.#workouts.find(
       work => work.id === workoutEl.dataset.id
     );
 
@@ -316,7 +301,7 @@ class App {
   }
 
   _setLocalStorage() {
-    localStorage.setItem('workouts', JSON.stringify(this.workouts));
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
   }
 
   _getLocalStorage() {
@@ -324,31 +309,12 @@ class App {
 
     if (!data) return;
 
-    this.workouts = data;
+    this.#workouts = data;
 
     // This will render each workout from localstorage into the app
-    this.workouts.forEach(work => {
+    this.#workouts.forEach(work => {
       this._renderWorkout(work);
     });
-  }
-
-  _addEventListenersToW() {
-    workoutDelete = document.querySelector('.workout__delete')
-    workoutEl = document.querySelector('.workout')
-    console.log(workoutDelete)
-    workoutDelete.addEventListener('click', this._deleteW.bind(this))
-  }
-
-  _deleteW(e) {
-    console.log('clicked')
-    const deleteEl = e.target.closest('.workout')
-    console.log(deleteEl.dataset.id)
-    console.log(this.workouts)
-    const workoutIdx = this.workouts.findIndex(wkr => wkr.id === deleteEl.dataset.id)
-    console.log(workoutIdx)
-    this.workouts.splice(workoutIdx, 1)
-    this._setLocalStorage()
-    location.reload()
   }
 
   // to be used in the browser console to remove cache
